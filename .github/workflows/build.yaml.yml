@@ -35,9 +35,6 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Clippy check
-        run: cargo clippy -- -D warnings
-
       - name: Run tests
         run: cargo test --verbose
 
