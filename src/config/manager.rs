@@ -18,7 +18,6 @@ impl ConfigManager {
         let config_dir = home.join(".config").join("rustkpcli");
         let config_file = config_dir.join("config.json");
         let encryption = EncryptionManager::new()?;
-
         Ok(Self {
             config_dir,
             config_file,
