@@ -1,0 +1,29 @@
+name: Android ARMv7
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: armv7-linux-androideabi
+      - run: |
+          wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
+          unzip android-ndk-r25b-linux.zip
+          export ANDROID_NDK_HOME=$PWD/android-ndk-r25b
+          echo "CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang" >> $GITHUB_ENV
+      - run: cargo build --release --target armv7-linux-androideabi
+      - run: |
+          mkdir -p artifact
+          cp target/armv7-linux-androideabi/release/rustkpcli artifact/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rustkpcli-android-armv7
+          path: artifact/

@@ -1,0 +1,25 @@
+[package]
+name = "rustkpcli"
+version = "2.0.0"
+edition = "2024"
+
+[dependencies]
+chrono = { version = "0.4", features = ["clock"] }
+clap = { version = "4.5", features = ["derive"] }
+colored = "3.1"
+dirs = "6.0"
+indicatif = "0.18"
+reqwest = { version = "0.13", features = ["blocking"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+urlencoding = "2.1"
+rpassword = "7.4"
+anyhow = "1.0"
+thiserror = "2.0"
+humansize = "2.1"
+aes-gcm = "0.10"  # Gunakan versi stabil
+sha2 = "0.10"
+data-encoding = "2.10"
+rand = "0.8"  # Turunkan versi untuk kompatibilitas
+rand_core = "0.6"  # Tambahkan ini
+hex = "0.4"  # Tambahkan untuk encoding/decoding
