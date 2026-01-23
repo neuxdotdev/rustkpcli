@@ -80,20 +80,20 @@ pub struct ExportArgs {
 /// UI/UX Functions
 pub fn show_banner() {
     println!();
-    println!("{}", "╔══════════════════════════════════════════════════╗".cyan());
-    println!("{}", "║                                                  ║".cyan());
-    println!("{}", "║      ███████╗███████╗███████╗██████╗            ║".cyan().bold());
-    println!("{}", "║      ██╔════╝██╔════╝██╔════╝██╔══██╗           ║".cyan().bold());
-    println!("{}", "║      ███████╗█████╗  █████╗  ██████╔╝           ║".cyan().bold());
-    println!("{}", "║      ╚════██║██╔══╝  ██╔══╝  ██╔══██╗           ║".cyan().bold());
-    println!("{}", "║      ███████║███████╗███████╗██║  ██║           ║".cyan().bold());
-    println!("{}", "║      ╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝           ║".cyan().bold());
-    println!("{}", "║                                                  ║".cyan());
-    println!("{}", "║    Export Receivable Card Reports CLI           ║".yellow());
-    println!("{}", "║    NTLM Authentication Built-in                 ║".dimmed());
-    println!("{}", "║                                                  ║".cyan());
-    println!("{}", "║  GitHub: https://github.com/neuxdotdev/rustkpcli ║".blue().underline());
-    println!("{}", "╚══════════════════════════════════════════════════╝".cyan());
+    println!("{}", "╔══════════════════════════════════════════════════════╗".cyan());
+    println!("{}", "║                                                      ║".cyan());
+    println!("{}", "║      ███████╗███████╗███████╗██████╗                 ║".cyan().bold());
+    println!("{}", "║      ██╔════╝██╔════╝██╔════╝██╔══██╗                ║".cyan().bold());
+    println!("{}", "║      ███████╗█████╗  █████╗  ██████╔╝                ║".cyan().bold());
+    println!("{}", "║      ╚════██║██╔══╝  ██╔══╝  ██╔══██╗                ║".cyan().bold());
+    println!("{}", "║      ███████║███████╗███████╗██║  ██║                ║".cyan().bold());
+    println!("{}", "║      ╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝                ║".cyan().bold());
+    println!("{}", "║                                                      ║".cyan());
+    println!("{}", "║    Export Receivable Card Reports CLI                ║".yellow());
+    println!("{}", "║    NTLM Authentication Built-in                      ║".dimmed());
+    println!("{}", "║                                                      ║".cyan());
+    println!("{}", "║  GitHub: https://github.com/neuxdotdev/rustkpcli     ║".blue().underline());
+    println!("{}", "╚══════════════════════════════════════════════════════╝".cyan());
     println!();
 }
 
@@ -108,7 +108,7 @@ fn format_filename(no_perjanjian: &str, format: &str) -> String {
         "excel" => "xlsx",
         _ => "pdf",
     };
-    format!("SSRS_{}_{}.{}", clean_no, timestamp, ext)
+    format!("RustKpCli_{}_{}.{}", clean_no, timestamp, ext)
 }
 
 fn format_bytes(bytes: u64) -> String {
