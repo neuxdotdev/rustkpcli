@@ -31,248 +31,76 @@ jobs:
           key: '${{ runner.os }}-cargo-${{ hashFiles(''**/Cargo.lock'') }}'
       - name: Run tests
         run: cargo test --verbose
-  linux-x64:
-    name: Linux x86_64
-    runs-on: ubuntu-latest
+  build:
+    name: 'Build for ${{ matrix.os }}-${{ matrix.arch }}'
+    runs-on: '${{ matrix.os }}'
     needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            platform: linux
+            arch: x86_64
+            extension: ''
+          - os: ubuntu-latest
+            target: i686-unknown-linux-gnu
+            platform: linux
+            arch: i686
+            extension: ''
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform: windows
+            arch: x86_64
+            extension: .exe
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            platform: windows
+            arch: i686
+            extension: .exe
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            platform: macos
+            arch: x86_64
+            extension: ''
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            platform: macos
+            arch: arm64
+            extension: ''
+          - os: ubuntu-latest
+            target: aarch64-linux-android
+            platform: android
+            arch: aarch64
+            extension: ''
+          - os: ubuntu-latest
+            target: armv7-linux-androideabi
+            platform: android
+            arch: armv7
+            extension: ''
+          - os: ubuntu-latest
+            target: i686-linux-android
+            platform: android
+            arch: i686
+            extension: ''
+          - os: ubuntu-latest
+            target: x86_64-linux-android
+            platform: android
+            arch: x86_64
+            extension: ''
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux' && matrix.platform != 'android'
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev pkg-config
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-unknown-linux-gnu
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: '${{ runner.os }}-cargo-${{ hashFiles(''**/Cargo.lock'') }}'
-      - name: Build release
-        run: cargo build --release --target x86_64-unknown-linux-gnu
-      - name: Strip binary
-        run: |
-          strip target/x86_64-unknown-linux-gnu/release/${{ env.PROJECT_NAME }}
-      - name: Create checksum
-        run: |
-          cd target/x86_64-unknown-linux-gnu/release
-          sha256sum ${{ env.PROJECT_NAME }} > ${{ env.PROJECT_NAME }}.sha256
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: '${{ env.PROJECT_NAME }}-linux-x86_64'
-          path: >
-            target/x86_64-unknown-linux-gnu/release/${{ env.PROJECT_NAME }}
-
-            target/x86_64-unknown-linux-gnu/release/${{ env.PROJECT_NAME
-            }}.sha256
-  linux-x86:
-    name: Linux i686
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib libssl-dev pkg-config
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: i686-unknown-linux-gnu
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: '${{ runner.os }}-cargo-${{ hashFiles(''**/Cargo.lock'') }}'
-      - name: Build release
-        run: cargo build --release --target i686-unknown-linux-gnu
-      - name: Strip binary
-        run: |
-          strip target/i686-unknown-linux-gnu/release/${{ env.PROJECT_NAME }}
-      - name: Create checksum
-        run: |
-          cd target/i686-unknown-linux-gnu/release
-          sha256sum ${{ env.PROJECT_NAME }} > ${{ env.PROJECT_NAME }}.sha256
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: '${{ env.PROJECT_NAME }}-linux-i686'
-          path: |
-            target/i686-unknown-linux-gnu/release/${{ env.PROJECT_NAME }}
-            target/i686-unknown-linux-gnu/release/${{ env.PROJECT_NAME }}.sha256
-  windows-x64:
-    name: Windows x86_64
-    runs-on: windows-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-pc-windows-msvc
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: '${{ runner.os }}-cargo-${{ hashFiles(''**/Cargo.lock'') }}'
-      - name: Build release
-        run: cargo build --release --target x86_64-pc-windows-msvc
-      - name: Create checksum
-        shell: pwsh
-        run: >
-          cd target/x86_64-pc-windows-msvc/release
-
-          $hash = (Get-FileHash "${{ env.PROJECT_NAME }}.exe" -Algorithm
-          SHA256).Hash
-
-          "$hash  ${{ env.PROJECT_NAME }}.exe" | Out-File -FilePath "${{
-          env.PROJECT_NAME }}.exe.sha256" -Encoding ASCII
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: '${{ env.PROJECT_NAME }}-windows-x86_64'
-          path: >
-            target/x86_64-pc-windows-msvc/release/${{ env.PROJECT_NAME }}.exe
-
-            target/x86_64-pc-windows-msvc/release/${{ env.PROJECT_NAME
-            }}.exe.sha256
-  windows-x86:
-    name: Windows i686
-    runs-on: windows-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: i686-pc-windows-msvc
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: '${{ runner.os }}-cargo-${{ hashFiles(''**/Cargo.lock'') }}'
-      - name: Build release
-        run: cargo build --release --target i686-pc-windows-msvc
-      - name: Create checksum
-        shell: pwsh
-        run: >
-          cd target/i686-pc-windows-msvc/release
-
-          $hash = (Get-FileHash "${{ env.PROJECT_NAME }}.exe" -Algorithm
-          SHA256).Hash
-
-          "$hash  ${{ env.PROJECT_NAME }}.exe" | Out-File -FilePath "${{
-          env.PROJECT_NAME }}.exe.sha256" -Encoding ASCII
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: '${{ env.PROJECT_NAME }}-windows-i686'
-          path: >
-            target/i686-pc-windows-msvc/release/${{ env.PROJECT_NAME }}.exe
-
-            target/i686-pc-windows-msvc/release/${{ env.PROJECT_NAME
-            }}.exe.sha256
-  macos-x64:
-    name: macOS x86_64
-    runs-on: macos-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-apple-darwin
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: '${{ runner.os }}-cargo-${{ hashFiles(''**/Cargo.lock'') }}'
-      - name: Build release
-        run: cargo build --release --target x86_64-apple-darwin
-      - name: Strip binary
-        run: |
-          strip target/x86_64-apple-darwin/release/${{ env.PROJECT_NAME }}
-      - name: Create checksum
-        run: |
-          cd target/x86_64-apple-darwin/release
-          shasum -a 256 ${{ env.PROJECT_NAME }} > ${{ env.PROJECT_NAME }}.sha256
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: '${{ env.PROJECT_NAME }}-macos-x86_64'
-          path: |
-            target/x86_64-apple-darwin/release/${{ env.PROJECT_NAME }}
-            target/x86_64-apple-darwin/release/${{ env.PROJECT_NAME }}.sha256
-  macos-arm64:
-    name: macOS ARM64
-    runs-on: macos-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-darwin
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: '${{ runner.os }}-cargo-${{ hashFiles(''**/Cargo.lock'') }}'
-      - name: Build release
-        run: cargo build --release --target aarch64-apple-darwin
-      - name: Strip binary
-        run: |
-          strip target/aarch64-apple-darwin/release/${{ env.PROJECT_NAME }}
-      - name: Create checksum
-        run: |
-          cd target/aarch64-apple-darwin/release
-          shasum -a 256 ${{ env.PROJECT_NAME }} > ${{ env.PROJECT_NAME }}.sha256
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: '${{ env.PROJECT_NAME }}-macos-arm64'
-          path: |
-            target/aarch64-apple-darwin/release/${{ env.PROJECT_NAME }}
-            target/aarch64-apple-darwin/release/${{ env.PROJECT_NAME }}.sha256
-  android:
-    name: 'Android (${{ matrix.target }})'
-    runs-on: ubuntu-latest
-    needs: test
-    strategy:
-      matrix:
-        target:
-          - aarch64-linux-android
-          - armv7-linux-androideabi
-          - i686-linux-android
-          - x86_64-linux-android
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: '${{ matrix.target }}'
-      - name: Install Android NDK
+          if [ "${{ matrix.arch }}" = "i686" ]; then
+            sudo apt-get install -y gcc-multilib
+          fi
+      - name: Setup Android NDK
+        if: matrix.platform == 'android'
         run: >
           wget -q
           https://dl.google.com/android/repository/android-ndk-r25c-linux.zip
@@ -284,6 +112,7 @@ jobs:
           echo "$PWD/android-ndk-r25c/toolchains/llvm/prebuilt/linux-x86_64/bin"
           >> $GITHUB_PATH
       - name: Setup Android target
+        if: matrix.platform == 'android'
         run: |
           case "${{ matrix.target }}" in
             aarch64-linux-android)
@@ -303,6 +132,10 @@ jobs:
               echo "CC_x86_64_linux_android=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android24-clang" >> $GITHUB_ENV
               ;;
           esac
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: '${{ matrix.target }}'
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -310,31 +143,77 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: '${{ runner.os }}-android-cargo-${{ hashFiles(''**/Cargo.lock'') }}'
+          key: >-
+            ${{ runner.os }}-${{ matrix.target }}-cargo-${{
+            hashFiles('**/Cargo.lock') }}
       - name: Build release
         run: 'cargo build --release --target ${{ matrix.target }}'
+      - name: Strip binary (Linux/macOS)
+        if: runner.os != 'Windows' && matrix.platform != 'android'
+        run: >
+          strip target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}${{
+          matrix.extension }}
+      - name: Determine version and commit
+        id: vars
+        run: |
+          # Get tag version or use input
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          # Remove 'v' prefix if present
+          VERSION=${VERSION#v}
+
+          # Get short commit hash
+          SHORT_SHA=${GITHUB_SHA:0:7}
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+      - name: Create final filename
+        id: filename
+        run: >
+          FILENAME="${PROJECT_NAME}_${{ steps.vars.outputs.version }}_${{
+          matrix.platform }}_${{ matrix.arch }}_${{ steps.vars.outputs.short_sha
+          }}${{ matrix.extension }}"
+
+          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+      - name: Rename binary
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            Move-Item "target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}.exe" "target/${{ matrix.target }}/release/${{ steps.filename.outputs.filename }}"
+          else
+            mv "target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}" "target/${{ matrix.target }}/release/${{ steps.filename.outputs.filename }}"
+          fi
       - name: Create checksum
+        shell: bash
         run: |
           cd target/${{ matrix.target }}/release
-          sha256sum ${{ env.PROJECT_NAME }} > ${{ env.PROJECT_NAME }}.sha256
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            # PowerShell for Windows
+            $hash = (Get-FileHash "${{ steps.filename.outputs.filename }}" -Algorithm SHA256).Hash
+            "$hash *${{ steps.filename.outputs.filename }}" | Out-File -FilePath "${{ steps.filename.outputs.filename }}.sha256" -Encoding ASCII
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            # macOS
+            shasum -a 256 "${{ steps.filename.outputs.filename }}" > "${{ steps.filename.outputs.filename }}.sha256"
+          else
+            # Linux
+            sha256sum "${{ steps.filename.outputs.filename }}" > "${{ steps.filename.outputs.filename }}.sha256"
+          fi
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: '${{ env.PROJECT_NAME }}-${{ matrix.target }}'
-          path: |
-            target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}
-            target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}.sha256
+          name: '${{ matrix.platform }}-${{ matrix.arch }}'
+          path: >
+            target/${{ matrix.target }}/release/${{
+            steps.filename.outputs.filename }}
+
+            target/${{ matrix.target }}/release/${{
+            steps.filename.outputs.filename }}.sha256
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs:
-      - linux-x64
-      - linux-x86
-      - windows-x64
-      - windows-x86
-      - macos-x64
-      - macos-arm64
-      - android
+    needs: build
     permissions:
       contents: write
     steps:
@@ -343,76 +222,147 @@ jobs:
         with:
           path: ./artifacts
       - name: List artifacts
-        run: find ./artifacts -type f -name "*" | sort
-      - name: Determine tag name
-        id: tag
+        run: |
+          echo "Artifacts structure:"
+          find ./artifacts -type f -name "*" | sort
+          echo ""
+          echo "Files to be released:"
+          find ./artifacts -type f ! -name "*.sha256" ! -name "*.txt" | sort
+      - name: Determine release info
+        id: release_info
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag_name=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            TAG_NAME="${{ github.event.inputs.version }}"
           else
-            echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            TAG_NAME="${{ github.ref_name }}"
           fi
+
+          # Get version without 'v'
+          VERSION=${TAG_NAME#v}
+          SHORT_SHA=${GITHUB_SHA:0:7}
+
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
       - name: Generate combined SHA256 checksum
-        run: |
+        run: >
           echo "Generating combined checksums..."
+
           cd artifacts
+
+          # Collect all SHA256 files
+
           find . -name "*.sha256" -type f -exec cat {} \; > ALL_SHA256SUMS.txt
+
           echo "" >> ALL_SHA256SUMS.txt
-          echo "Checksums generated on: $(date -u)" >> ALL_SHA256SUMS.txt
+
+          echo "Generated on: $(date -u)" >> ALL_SHA256SUMS.txt
+
+          echo "Version: ${{ steps.release_info.outputs.version }}" >>
+          ALL_SHA256SUMS.txt
+
           echo "Git SHA: ${{ github.sha }}" >> ALL_SHA256SUMS.txt
+
+          echo "Short SHA: ${{ steps.release_info.outputs.short_sha }}" >>
+          ALL_SHA256SUMS.txt
       - name: Create release notes
-        run: |
+        run: >
           cat > release_notes.md << EOF
-          # ${{ env.PROJECT_NAME }} ${{ steps.tag.outputs.tag_name }}
+
+          # ${{ env.PROJECT_NAME }} ${{ steps.release_info.outputs.tag_name }}
+
 
           ## Multi-Platform Release
 
-          Built for multiple platforms including:
-          - Linux (x86_64, i686)
-          - Windows (x86_64, i686)
-          - macOS (x86_64, arm64)
-          - Android (aarch64, armv7, i686, x86_64)
+
+          Built for multiple platforms with standardized naming:
+
+          \`{PKGNAME}_{VERSION}_{OS}_{ARCH}_{SHORT_SHA}.{EXT}\`
+
+
+          ### Available Platforms:
+
+          - **Linux**: x86_64, i686
+
+          - **Windows**: x86_64, i686
+
+          - **macOS**: x86_64, arm64
+
+          - **Android**: aarch64, armv7, i686, x86_64
+
+
+          ### File Naming Convention:
+
+          \`\`\`
+
+          ${{ env.PROJECT_NAME }}_${{ steps.release_info.outputs.version
+          }}_{platform}_{arch}_${{ steps.release_info.outputs.short_sha
+          }}{extension}
+
+          \`\`\`
+
 
           ### Checksums
 
+
           SHA256 checksums for all binaries:
 
+
           \`\`\`
+
           $(cat artifacts/ALL_SHA256SUMS.txt)
+
           \`\`\`
+
 
           ### Installation
 
+
           **Linux/macOS:**
+
           \`\`\`bash
-          # Make binary executable
-          chmod +x ${{ env.PROJECT_NAME }}
+
+          # Download appropriate binary
+
+          chmod +x ${{ env.PROJECT_NAME }}_*
+
 
           # Move to PATH
-          sudo mv ${{ env.PROJECT_NAME }} /usr/local/bin/
+
+          sudo mv ${{ env.PROJECT_NAME }}_* /usr/local/bin/${{ env.PROJECT_NAME
+          }}
+
           \`\`\`
 
+
           **Windows:**
-          Add the executable to your PATH.
+
+          Rename the .exe file and add to your PATH.
+
 
           ### Usage
 
+
           \`\`\`bash
+
           ${{ env.PROJECT_NAME }} --help
+
           \`\`\`
+
 
           ---
 
-          *Built with GitHub Actions - ${{ github.run_id }}*
+
+          *Built with GitHub Actions - Run ID: ${{ github.run_id }}*
+
           EOF
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: ncipollo/release-action@v1
         with:
-          name: 'Release ${{ steps.tag.outputs.tag_name }}'
-          body_path: release_notes.md
+          name: 'Release ${{ steps.release_info.outputs.tag_name }}'
+          bodyFile: release_notes.md
           draft: false
           prerelease: false
-          tag_name: '${{ steps.tag.outputs.tag_name }}'
-          generate_release_notes: false
-          files: |
-            artifacts/**/*
+          tag: '${{ steps.release_info.outputs.tag_name }}'
+          artifacts: artifacts/**/*
+          token: '${{ secrets.GITHUB_TOKEN }}'
