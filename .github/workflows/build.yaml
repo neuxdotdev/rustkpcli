@@ -406,12 +406,13 @@ jobs:
           *Built with GitHub Actions - ${{ github.run_id }}*
           EOF
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: 'Release ${{ steps.tag.outputs.tag_name }}'
           body_path: release_notes.md
           draft: false
           prerelease: false
           tag_name: '${{ steps.tag.outputs.tag_name }}'
+          generate_release_notes: false
           files: |
             artifacts/**/*
